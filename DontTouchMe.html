@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body style="background-color:lightgrey">
+
+		<script src="js/build/three.min.js"></script>
+		<script src="js/example/js/KeyboardState.js"></script>
+		<script>
+
+var scene = new THREE.Scene();
+
+
+
+
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			
+			var material = new THREE.MeshPhongMaterial({color: 0x0000ff});
+			
+			var cube = new THREE.Mesh( geometry, material );
+			
+			var score = 0;
+			var WinScore = 15;
+			var isSafe = true;
+			
+			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2();
+			var animationSpeed = 0.1;
+			var cubeYSpawn = 8; //Start Spawn Position Y
+			var cubeXSpawn = -1; //Start Spawn Position X (This should be randomized after collision)
+			var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			directionalLight.position.set( 0, 1, 0 );
+			scene.add( directionalLight );
+			
+			cube.position.y = cubeYSpawn; //Set cube position to Spawn Position
+			cube.position.x = cubeXSpawn;
+			
+			scene.add( cube );
+
+			camera.position.z = 5;
+			
+			//Text//
+			var text = document.createElement('div');
+			text.style.position = 'absolute';
+			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+			text.style.width = 100;
+			text.style.height = 100;
+			text.style.backgroundColor = "white";
+			text.innerHTML = "Score : " + score;
+			text.style.top = 200 + 'px';
+			text.style.left = 200 + 'px';
+			document.body.appendChild(text);
+			text.style.fontSize = 40 + 'px';
+			//Text//
+
+			//add a light
+
+			var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			directionalLight.position.set( 0, 1, 0 );
+			scene.add( directionalLight );
+
+			var directionalLight2 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			directionalLight2.position.set( 0, -1, 20 );
+			scene.add( directionalLight2 );
+
+
+			var directionalLight3 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			directionalLight3.position.set( 1, 0, 0 );
+			scene.add( directionalLight3 );
+
+
+			var directionalLight4 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			directionalLight4.position.set( -1, 0, 0 );
+			scene.add( directionalLight4 );
+			
+			
+			function randStep(min, max, step) {
+    		return min + (step * Math.floor(Math.random()*(max-min)/step) );
+			}
+
+			function onMouseMove( event )
+			{
+			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;//Track Mouse Position X
+			mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;//Track Mouse Position Y
+			
+			//Raycasting code
+			raycaster.setFromCamera( mouse, camera );
+				// calculate objects intersecting the picking ray
+				var intersects = raycaster.intersectObjects( scene.children );
+				for ( var i = 0; i < intersects.length; i++ ) {
+					camera.rotation.z = randStep(0, 2*Math.PI, Math.PI/2);
+					cube.position.x =  Math.floor((Math.random() * 10) + -5);
+					
+				intersects[i].object.position.y = cubeYSpawn; //If intersected, send back up
+				
+				
+				
+				if (score < WinScore && !isSafe) { //Lose a point when caught
+					score -= 1;
+					text.innerHTML = "Score : " + score;
+					animationSpeed -= 0.01; //increase speed if intersected
+				}
+				
+				else if (score < WinScore && isSafe) { //add point when caught
+					score += 1;
+					text.innerHTML = "Score : " + score;
+					animationSpeed += 0.01; //increase speed if intersected
+				}
+				
+				else if (score >= WinScore) {
+					text.innerHTML = "You Win!";
+				}
+				var randomNumber = Math.random() >= 0.5;
+
+				;
+				console.log(isSafe);
+				//Randomize isSafe here
+				isSafe = Math.random() >= 0.5; 
+				//Change the cube to red when isSafe is false
+				if(isSafe === true)
+				{
+				cube.material = new THREE.MeshPhongMaterial({color: 0x0000ff});
+				}
+				else
+				{
+					cube.material = new THREE.MeshPhongMaterial({color: 0xff0000});
+				}
+			}
+		}
+			
+			
+			
+        
+			 function animate() {
+				requestAnimationFrame( animate );
+				//document.onkeydown = function(ev){ keydown(ev); };
+				cube.position.y -= animationSpeed;
+				
+				if (cube.position.y < -8) {
+					camera.rotation.z = randStep(0, 2*Math.PI, Math.PI/2);
+					cube.position.x =  Math.floor((Math.random() * 10) + -5);
+					cube.position.y = cubeYSpawn; //Once cube hits the bottom, send back up
+					
+					
+				if (animationSpeed < 0.01) {
+					animationSpeed = 0.01;
+				}
+				
+					
+				if (score < WinScore && isSafe) { //Lose a point when missed
+					score -= 1;
+					text.innerHTML = "Score : " + score;
+					animationSpeed -= 0.01; //Decrease speed if hits the bottom
+				}
+				
+				else if (score < WinScore && !isSafe) { //Win a point when missed
+					score += 1;
+					text.innerHTML = "Score : " + score;
+					animationSpeed += 0.01; //Decrease speed if hits the bottom
+				}
+				
+				else if (score >= WinScore) {
+					text.innerHTML = "You Win!";
+				}
+				
+				isSafe = Math.random() >= 0.5;
+				console.log(isSafe);
+				//Randomize isSafe here
+				
+				//Change the cube to red when isSafe is false
+				if(isSafe === false)
+				{
+				cube.material = new THREE.MeshPhongMaterial({color: 0xff0000});
+				}
+				else
+				{
+					cube.material = new THREE.MeshPhongMaterial({color: 0x0000ff});
+				}
+			}
+		}
+
+
+			var render = function () {
+				requestAnimationFrame( render );
+				renderer.render(scene, camera);
+				
+			};
+			
+			
+
+			//function keydown(ev) {
+  
+			 //switch (ev.keyCode)
+			 //{
+			//case keycode	
+			//}
+					//}
+
+			window.addEventListener( 'mousemove', onMouseMove, false );
+			animate();
+			render();
+			
+
+		</script>
+	</body>
+</html>
